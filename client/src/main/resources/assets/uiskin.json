@@ -1,0 +1,26 @@
+{
+  "com.badlogic.gdx.scenes.scene2d.ui.Skin": {
+    "colors": {
+      "white": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      }
+    },
+    "button": {
+      "down": "white",
+      "up": "white",
+      "checked": "white",
+      "over": "white",
+      "disabled": "white"
+    },
+    "textfield": {
+      "background": "white",
+      "font": "default-font",
+      "fontColor": "white",
+      "cursor": "white",
+      "selection": "white"
+    }
+  }
+}
