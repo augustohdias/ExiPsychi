@@ -46,7 +46,6 @@ public class SessionUpdateService {
         lastUpdate = currentTime;
 
         for (WebSocketSession session : activeCharacters.keys()) {
-            System.out.println("Atualizando posições...");
             Character currentCharacter = activeCharacters.get(session).get();
             
             if (Action.MOVE.equals(currentCharacter.getAction())) {
