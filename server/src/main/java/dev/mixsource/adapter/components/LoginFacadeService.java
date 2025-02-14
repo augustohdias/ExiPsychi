@@ -1,10 +1,10 @@
 package dev.mixsource.adapter.components;
 
-import dev.mixsource.model.Action;
 import dev.mixsource.model.Character;
 import dev.mixsource.model.entity.UserEntity;
 import dev.mixsource.model.request.LoginRequest;
 import dev.mixsource.model.response.LoginResponse;
+import dev.mixsource.model.entity.CharacterEntity;
 import dev.mixsource.port.input.LoginFacade;
 import dev.mixsource.port.input.UserAuthentication;
 import dev.mixsource.port.output.CharacterInformation;
@@ -46,7 +46,7 @@ public class LoginFacadeService implements LoginFacade {
         final Set<Character> characters = characterInformationService
                 .retrieveUserCharacters(userEntity.getId())
                 .stream()
-                .map(c -> new Character(c.getId(), c.getX(), c.getY(), Action.IDLE, c.getName()))
+                .map(CharacterEntity::toCharacter)
                 .collect(Collectors.toSet());
         return new LoginResponse(characters, token);
     }

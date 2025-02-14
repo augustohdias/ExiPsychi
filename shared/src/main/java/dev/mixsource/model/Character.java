@@ -12,9 +12,9 @@ import lombok.Setter;
 public class Character {
     private Long id;
 
-    private Integer x;
+    private Double x;
 
-    private Integer y;
+    private Double y;
 
     private String name;
 
@@ -40,9 +40,15 @@ public class Character {
 
     // ------------- end
 
+    private Long userId;
+
     private Action action;
 
-    public Character(final Long id, final Integer x, final Integer y, final Action action, final String name) {
+    private Direction direction = Direction.DOWN;
+
+    private Integer lastProcessedSequence = 0;
+
+    public Character(final Long id, final Double x, final Double y, final Action action, final String name) {
         this.id = id;
         this.x = x;
         this.y = y;
