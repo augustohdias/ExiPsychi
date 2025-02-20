@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Input {
+public class UserInput {
     private List<Command> issuedCommands;
     private LocalDateTime clientTime;
     private long sequenceNumber;

@@ -4,6 +4,8 @@ import dev.mixsource.application.ServerConnector;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
+import com.badlogic.gdx.Gdx;
+
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,13 +23,17 @@ public class WebSocketServerConnector implements ServerConnector {
         httpHeaders.put("Authorization", "Bearer " + token);
     }
 
+    public boolean isConnected() {
+        return client != null && client.isOpen();
+    }  
+
     @Override
     public void connect() {
         try {
             client = new WebSocketClient(new URI(serverUri), httpHeaders) {
                 @Override
                 public void onOpen(ServerHandshake handshake) {
-                    System.out.println("Conexão WebSocket estabelecida com sucesso!");
+                    Gdx.app.log(this.getClass().getName(), "Conexão WebSocket estabelecida com sucesso!");
                 }
 
                 @Override
@@ -39,16 +45,18 @@ public class WebSocketServerConnector implements ServerConnector {
 
                 @Override
                 public void onClose(int i, String s, boolean b) {
-                    System.out.println("Conexão encerrada.");
+                    Gdx.app.log(this.getClass().getName(),"Conexão encerrada.");
                 }
 
                 @Override
                 public void onError(Exception e) {
-                    System.out.println("Erro na conexão: " + e.getMessage());
+                    Gdx.app.log(this.getClass().getName(),"Erro na conexão: " + e.getMessage());
+                    e.printStackTrace();
                 }
             };
             client.connect();
         } catch (Exception e) {
+            Gdx.app.error(this.getClass().getName(),"Erro na conexão: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -62,7 +70,7 @@ public class WebSocketServerConnector implements ServerConnector {
         if (client != null && client.isOpen()) {
             client.send(message);
         } else {
-            System.out.println("WebSocket não está conectado.");
+            Gdx.app.log(this.getClass().getName(),"WebSocket não está conectado.");
         }
     }
 } 

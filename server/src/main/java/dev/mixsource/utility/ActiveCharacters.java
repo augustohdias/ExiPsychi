@@ -1,6 +1,6 @@
 package dev.mixsource.utility;
 
-import dev.mixsource.model.Character;
+import dev.mixsource.model.CharacterModel;
 import dev.mixsource.port.input.SessionStorage;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
@@ -14,10 +14,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class ActiveCharacters implements SessionStorage {
-    private static final Map<WebSocketSession, Character> activeCharacters = new ConcurrentHashMap<>();
+    private static final Map<WebSocketSession, CharacterModel> activeCharacters = new ConcurrentHashMap<>();
 
     @Override
-    public Optional<Character> get(final WebSocketSession key) {
+    public Optional<CharacterModel> get(final WebSocketSession key) {
         return Optional.ofNullable(activeCharacters.get(key));
     }
 
@@ -27,18 +27,18 @@ public class ActiveCharacters implements SessionStorage {
     }
 
     @Override
-    public List<Character> values() {
+    public List<CharacterModel> values() {
         return new ArrayList<>(activeCharacters.values());
     }
 
     @Override
-    public SessionStorage put(WebSocketSession key, Character value) {
+    public SessionStorage put(WebSocketSession key, CharacterModel value) {
         activeCharacters.put(key, value);
         return this;
     }
 
     @Override
-    public ActiveCharacters update(final WebSocketSession key, final Character value) {
+    public ActiveCharacters update(final WebSocketSession key, final CharacterModel value) {
         activeCharacters.put(key, value);
         return this;
     }

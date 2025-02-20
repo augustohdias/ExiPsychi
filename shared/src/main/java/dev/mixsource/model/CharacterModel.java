@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Character {
+public class CharacterModel {
     private Long id;
 
     private Double x;
@@ -48,7 +48,7 @@ public class Character {
 
     private Integer lastProcessedSequence = 0;
 
-    public Character(final Long id, final Double x, final Double y, final Action action, final String name) {
+    public CharacterModel(final Long id, final Double x, final Double y, final Action action, final String name) {
         this.id = id;
         this.x = x;
         this.y = y;

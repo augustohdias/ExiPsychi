@@ -1,32 +1,44 @@
-package dev.mixsource;
+package dev.mixsource.core;
 
-import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
-import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+
 import dev.mixsource.adapters.HttpAuthService;
 import dev.mixsource.application.AuthService;
-import dev.mixsource.ui.LoginScreen;
-import com.badlogic.gdx.graphics.GL20;
+import dev.mixsource.configuration.DefaultSkin;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import dev.mixsource.ui.CharacterSelectionScreen;
-import dev.mixsource.ui.GameScreen;
 import dev.mixsource.adapters.WebSocketServerConnector;
-import dev.mixsource.factories.ScreenFactory;
-import dev.mixsource.factories.ConnectorFactory;
+import dev.mixsource.screen.CharacterSelectionScreen;
+import dev.mixsource.screen.GameScreen;
+import dev.mixsource.screen.LoginScreen;
+import lombok.Getter;
 
-public class GameClient extends ApplicationAdapter {
-
+@Getter
+public class GameClient extends Game {
     private LoginScreen loginScreen;
     private CharacterSelectionScreen selectionScreen;
     private GameScreen gameScreen;
-    private boolean loggedIn = false;
+
     private AuthService authService;
     private WebSocketServerConnector serverConnector;
 
+    private boolean loggedIn = false;
+
     @Override
     public void create() {
+        final ObjectMapper mapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        authService = new HttpAuthService("http://localhost:8080/login");
+        loginScreen = new LoginScreen(this, DefaultSkin.defaultLogin(), authService, mapper);
+        selectionScreen = new CharacterSelectionScreen(this, DefaultSkin.defaultCharacterSelection());
+        gameScreen = new GameScreen(this, mapper);
+        this.setScreen(loginScreen);
+/*
         authService = new HttpAuthService("http://localhost:8080/login");
         loginScreen = ScreenFactory.createLoginScreen(authService, (loginResponse) -> {
             Gdx.app.postRunnable(() -> {
@@ -57,35 +69,24 @@ public class GameClient extends ApplicationAdapter {
                 loggedIn = true;
             });
         });
-    }
-
-    @Override
-    public void render() {
-        Gdx.gl.glClearColor(0, 0, 0, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        if (!loggedIn) {
-            loginScreen.render(Gdx.graphics.getDeltaTime());
-        } else if (gameScreen != null) {
-            gameScreen.render();
-        } else if (selectionScreen != null) {
-            selectionScreen.render(Gdx.graphics.getDeltaTime());
-        }
+*/
     }
 
     @Override
     public void dispose() {
-        if (loginScreen != null) {
-            loginScreen.dispose();
+        Gdx.app.log(this.getClass().getName(), "Desalocando GameClient");   
+        try {
+            if (loginScreen != null) {
+                loginScreen.dispose();
+            }
+            if (selectionScreen != null) {
+                selectionScreen.dispose();
+            }
+            if (gameScreen != null) {
+                gameScreen.dispose();
+            }
+        } catch (Exception e) {
+            Gdx.app.log(this.getClass().getName(), "Erro ao desalocar GameClient: " + e.getMessage());
         }
-        if (gameScreen != null) {
-            gameScreen.dispose();
-        }
-    }
-
-    public static void main(String[] args) {
-        Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
-        config.setTitle("MMO Client");
-        config.setWindowedMode(1280, 720);
-        new Lwjgl3Application(new GameClient(), config);
     }
 }

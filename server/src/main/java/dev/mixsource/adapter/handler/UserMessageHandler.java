@@ -3,9 +3,9 @@ package dev.mixsource.adapter.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.mixsource.config.security.JwtUtils;
 import dev.mixsource.model.Action;
-import dev.mixsource.model.Character;
+import dev.mixsource.model.CharacterModel;
 import dev.mixsource.model.Command;
-import dev.mixsource.model.Input;
+import dev.mixsource.model.UserInput;
 import dev.mixsource.model.entity.CharacterEntity;
 import dev.mixsource.port.input.SessionStorage;
 import dev.mixsource.port.input.UserMessageWebSocketHandler;
@@ -49,7 +49,7 @@ public class UserMessageHandler extends TextWebSocketHandler implements UserMess
             handleCharacterConnection(session, characterId);
             return;
         }
-        final Input input = mapper.readValue(payload, Input.class);
+        final UserInput input = mapper.readValue(payload, UserInput.class);
         handleInput(session, input);
     }
 
@@ -59,14 +59,17 @@ public class UserMessageHandler extends TextWebSocketHandler implements UserMess
         activeCharacters.remove(session);
     }
 
-    private void handleInput(final WebSocketSession session, final Input input) {
+    private void handleInput(final WebSocketSession session, final UserInput input) {
         System.out.println("Recebido input: " + input.getIssuedCommands());
-        final Character character = activeCharacters.get(session).get();
+        System.out.println("Map: " + activeCharacters.get(session));
+        final CharacterModel character = activeCharacters.get(session).get();
+        System.out.println("Personagem ativo: " + character);
         final List<Command> commandsIssued = input.getIssuedCommands();
         
         commandsIssued.forEach(command -> {
             if (command.getCommandType() == Command.CommandType.MOVE) {
                 character.setAction(Action.MOVE);
+                System.out.println("Movendo personagem: " + character.getAction());
                 character.setDirection(command.getDirection());
             } else if (command.getCommandType() == Command.CommandType.STOP) {
                 character.setAction(Action.IDLE);
@@ -101,11 +104,11 @@ public class UserMessageHandler extends TextWebSocketHandler implements UserMess
                 && !activeCharacters
                         .values()
                         .stream()
-                        .map(Character::getId)
+                        .map(CharacterModel::getId)
                         .collect(Collectors.toSet())
                         .contains(characterId);
         if (isValid) {
-            Optional<Character> maybeCharacter = characters.findById(characterId).map(c -> c.toCharacter());
+            Optional<CharacterModel> maybeCharacter = characters.findById(characterId).map(c -> c.toCharacter());
             activeCharacters.put(session, maybeCharacter.get());
             return;
         }

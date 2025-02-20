@@ -3,8 +3,7 @@ package dev.mixsource.adapter.components;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.mixsource.model.Action;
-import dev.mixsource.model.Character;
-import dev.mixsource.model.Direction;
+import dev.mixsource.model.CharacterModel;
 import dev.mixsource.port.input.SessionStorage;
 import dev.mixsource.port.output.repository.Characters;
 import jakarta.annotation.PostConstruct;
@@ -46,42 +45,62 @@ public class SessionUpdateService {
         lastUpdate = currentTime;
 
         for (WebSocketSession session : activeCharacters.keys()) {
-            Character currentCharacter = activeCharacters.get(session).get();
+            CharacterModel currentCharacter = activeCharacters.get(session).get();
+            
+            boolean positionChanged = false;
             
             if (Action.MOVE.equals(currentCharacter.getAction())) {
-                double speed = 5.0 * deltaTime; // Mesma velocidade do cliente
+                double speed = 5.0 * deltaTime;
                 switch (currentCharacter.getDirection()) {
-                    case UP -> currentCharacter.setY(currentCharacter.getY() + speed);
-                    case DOWN -> currentCharacter.setY(currentCharacter.getY() - speed);
-                    case RIGHT -> currentCharacter.setX(currentCharacter.getX() + speed);
-                    case LEFT -> currentCharacter.setX(currentCharacter.getX() - speed);
+                    case UP -> {
+                        currentCharacter.setY(currentCharacter.getY() + speed);
+                        positionChanged = true;
+                    }
+                    case DOWN -> {
+                        currentCharacter.setY(currentCharacter.getY() - speed);
+                        positionChanged = true;
+                    }
+                    case RIGHT -> {
+                        currentCharacter.setX(currentCharacter.getX() + speed);
+                        positionChanged = true;
+                    }
+                    case LEFT -> {
+                        currentCharacter.setX(currentCharacter.getX() - speed);
+                        positionChanged = true;
+                    }
                 }
+            } else if (Action.IDLE.equals(currentCharacter.getAction())) {
+                positionChanged = false;
             }
-            
-            // Atualizar posição no banco de dados
-            characters.updateXAndYById(
-                currentCharacter.getId(),
-                currentCharacter.getX(),
-                currentCharacter.getY()
-            );
-            
-            final List<Character> updates = new ArrayList<>(activeCharacters.values().stream()
+
+            if (positionChanged) {
+                characters.updateXAndYById(
+                    currentCharacter.getId(),
+                    currentCharacter.getX(),
+                    currentCharacter.getY()
+                );
+            }
+
+            final List<CharacterModel> broadcastUpdates = new ArrayList<>(activeCharacters.values().stream()
                     .filter(c -> !c.getId().equals(currentCharacter.getId()))
                     .filter(c -> filterByDistance(currentCharacter, c))
                     .toList());
-            updates.add(currentCharacter);
+            broadcastUpdates.add(currentCharacter);
+            
             try {
-                final TextMessage message = new TextMessage(mapper.writeValueAsString(updates));
+                final TextMessage message = new TextMessage(mapper.writeValueAsString(broadcastUpdates));
                 session.sendMessage(message);
             } catch (JsonProcessingException ignored) {
-                // ignored
+                activeCharacters.remove(session);
+                System.out.println("Erro ao processar mensagem: " + ignored.getMessage());
             } catch (IOException ignored) {
-                // ignored
+                activeCharacters.remove(session);
+                System.out.println("Erro ao enviar mensagem: " + ignored.getMessage());
             }
         }
     }
 
-    private boolean filterByDistance(final Character referenceCharacter, final Character other) {
+    private boolean filterByDistance(final CharacterModel referenceCharacter, final CharacterModel other) {
         final double refX = referenceCharacter.getX();
         final double refY = referenceCharacter.getY();
         final double othX = other.getX();
@@ -93,6 +112,7 @@ public class SessionUpdateService {
 
     @PreDestroy
     public void stopScheduler() {
+        System.out.println("Parando scheduler");
         scheduler.shutdown();
     }
 }

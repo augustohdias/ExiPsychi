@@ -1,7 +1,7 @@
 package dev.mixsource.model.entity;
 
 import dev.mixsource.model.Action;
-import dev.mixsource.model.Character;
+import dev.mixsource.model.CharacterModel;
 import dev.mixsource.model.Direction;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -53,8 +53,8 @@ public class CharacterEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    public Character toCharacter() {
-        return new Character(
+    public CharacterModel toCharacter() {
+        return new CharacterModel(
                 id,
                 x,
                 y,
@@ -73,7 +73,7 @@ public class CharacterEntity {
             );
     }
 
-    public static CharacterEntity fromCharacter(Character character) {
+    public static CharacterEntity fromCharacter(CharacterModel character) {
         final UserEntity user = new UserEntity();
         user.setId(character.getUserId());
         return new CharacterEntity(
